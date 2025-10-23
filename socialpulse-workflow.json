@@ -1,0 +1,50 @@
+{
+  "name": "SocialPulse - generate and schedule posts",
+  "nodes": [
+    {
+      "id": "1",
+      "name": "Trigger - Cron",
+      "type": "n8n-nodes-base.cron",
+      "parameters": { "triggerTimes": [{ "hour": 9, "minute": 0 }] },
+      "position": [250, 300]
+    },
+    {
+      "id": "2",
+      "name": "HTTP Request - Gemini",
+      "type": "n8n-nodes-base.httpRequest",
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "={{ $env.GOOGLE_GEMINI_ENDPOINT }}",
+        "options": { "bodyContentType": "json" },
+        "bodyParametersJson": "={\"model\": $env.GEMINI_MODEL, \"prompt\": \"Create a short, engaging social media post about {{ $json.topic }} with 2 hashtags\" }"
+      },
+      "position": [500, 300]
+    },
+    {
+      "id": "3",
+      "name": "Function - Format",
+      "type": "n8n-nodes-base.function",
+      "parameters": {
+        "functionCode": "items[0].json.post = items[0].json.body.output_text || items[0].json.body.choices[0].text; return items;"
+      },
+      "position": [750, 300]
+    },
+    {
+      "id": "4",
+      "name": "HTTP Request - Post to worker queue",
+      "type": "n8n-nodes-base.httpRequest",
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "http://worker:4000/enqueue",
+        "options": { "bodyContentType": "json" },
+        "bodyParametersJson": "={ \"prompt\": items[0].json.post, \"platforms\": [\"x\", \"linkedin\", \"telegram\"] }"
+      },
+      "position": [1000, 300]
+    }
+  ],
+  "connections": {
+    "1": { "main": [[{"node":"2","type":"main","index":0}]] },
+    "2": { "main": [[{"node":"3","type":"main","index":0}]] },
+    "3": { "main": [[{"node":"4","type":"main","index":0}]] }
+  }
+}
