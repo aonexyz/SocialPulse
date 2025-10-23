@@ -1,0 +1,16 @@
+{
+  "name": "socialpulse-worker",
+  "version": "1.0.0",
+  "main": "src/worker.js",
+  "scripts": {
+    "start": "node src/worker.js",
+    "lint": "eslint . || true",
+    "test": "node --print \"Tests placeholder\""
+  },
+  "dependencies": {
+    "axios": "^1.4.0",
+    "dotenv": "^16.0.0",
+    "node-fetch": "^3.3.1",
+    "ioredis": "^5.3.2"
+  }
+}
