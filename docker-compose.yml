@@ -1,0 +1,34 @@
+version: '3.8'
+services:
+  n8n:
+    image: n8nio/n8n:latest
+    ports:
+      - 5678:5678
+    environment:
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=${N8N_BASIC_AUTH_USER}
+      - N8N_BASIC_AUTH_PASSWORD=${N8N_BASIC_AUTH_PASSWORD}
+      - N8N_HOST=localhost
+      - N8N_PORT=5678
+    volumes:
+      - ./n8n:/home/node/.n8n
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+
+  worker:
+    build: ./
+    command: node src/worker.js
+    environment:
+      - GOOGLE_GEMINI_API_KEY=${GOOGLE_GEMINI_API_KEY}
+      - GOOGLE_GEMINI_ENDPOINT=${GOOGLE_GEMINI_ENDPOINT}
+      - GEMINI_MODEL=${GEMINI_MODEL}
+      - X_BEARER_TOKEN=${X_BEARER_TOKEN}
+      - LINKEDIN_ACCESS_TOKEN=${LINKEDIN_ACCESS_TOKEN}
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - REDIS_URL=${REDIS_URL}
+    depends_on:
+      - redis
+    restart: unless-stopped
